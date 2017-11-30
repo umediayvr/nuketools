@@ -1,0 +1,47 @@
+#!/bin/bash
+
+installationType="$1"
+
+# production release
+if [[ "$installationType" == "production" ]]; then
+  # removing any previous build folder
+  if [ -d "build_release" ]; then
+    rm -r "build_release"
+  fi
+
+  # making sure UPIPE_ROOT is defined
+  if [ -z $UPIPE_ROOT ]; then
+    echo "UPIPE_ROOT is not defined"
+    exit 1
+  fi
+
+  # showing a prompt confirmation, in case of a mistake
+  read -r -p "Are you sure you want to run the production release? [y/N] " response
+  if [[ "$response" =~ ^(yes|y)$ ]]; then
+    # running installation
+    qbs build_release project.releaseType:production qbs.installRoot:$UPIPE_ROOT
+  fi
+
+# development release
+elif [ -z "$installationType" ]; then
+
+  # making sure UPIPE_DEV_ROOT is defined
+  if [ -z $UPIPE_DEV_ROOT ]; then
+    echo "UPIPE_DEV_ROOT is not defined"
+    exit 1
+  fi
+
+  # ATTENTION:
+  # The development version is based on the current UVER_NUKE_VERSION, in case
+  # you want to build to all nuke versions, run the line bellow:
+  # bash -c "unset UVER_NUKE_VERSION; ./install"
+  nukeMajorVersion=$(majorver $UVER_NUKE_VERSION)
+
+  # running installation
+  qbs project.releaseType:dev project.nukeMajorVersion:$nukeMajorVersion qbs.installRoot:$UPIPE_DEV_ROOT
+
+# invalid installation type
+else
+  echo "Invalid installation type ($installationType). Available types: \"\" (empty) for development installation and \"production\" for production installation)"
+  exit 1
+fi
