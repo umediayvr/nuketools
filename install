@@ -30,6 +30,14 @@ elif [ -z "$installationType" ]; then
     echo "UPIPE_DEV_ROOT is not defined"
     exit 1
   fi
+  
+  # TODO: workaround to avoid the installation not detecting
+  # modifications in files and installing a wrong version from the cache
+  # (rather than invalidating the cache).
+  # This issue has been noticed in qbs 1.8.1
+  if [ -d "default" ]; then
+    rm -r "default"
+  fi
 
   # ATTENTION:
   # The development version is based on the current UVER_NUKE_VERSION, in case
