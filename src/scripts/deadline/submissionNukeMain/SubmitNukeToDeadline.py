@@ -1121,6 +1121,14 @@ def SubmitJob( dialog, root, node, writeNodes, deadlineTemp, tempJobName, tempFr
         fileHandle.write( EncodeAsUTF16String( "SecondaryPool=\n" ) )
     else:
         fileHandle.write( EncodeAsUTF16String( "SecondaryPool=%s\n" % dialog.secondaryPool.value() ) )
+
+    # UMEDIA - start
+    # forcing to use the user's on the farm:
+    fileHandle.write( EncodeAsUTF16String( "IncludeEnvironment=True\n") )
+    # the variables bellow need to be unset (they point to local system directories)
+    fileHandle.write( EncodeAsUTF16String( "EnvironmentKeyValue0=NUKE_TEMP_DIR=\n") )
+    fileHandle.write( EncodeAsUTF16String( "EnvironmentKeyValue1=NUKE_DISK_CACHE=\n") )
+    # UMEDIA - end
     fileHandle.write( EncodeAsUTF16String( "Group=%s\n" % dialog.group.value() ) )
     fileHandle.write( EncodeAsUTF16String( "Priority=%s\n" % dialog.priority.value() ) )
     fileHandle.write( EncodeAsUTF16String( "MachineLimit=%s\n" % dialog.machineLimit.value() ) )
