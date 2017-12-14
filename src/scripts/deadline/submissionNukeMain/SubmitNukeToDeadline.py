@@ -37,7 +37,7 @@ class DeadlineDialog( nukescripts.PythonPanel ):
         nukescripts.PythonPanel.__init__( self, "Submit To Deadline", "com.thinkboxsoftware.software.deadlinedialog" )
 
         width = 620
-        height = 748 #Nuke v6 or earlier UI height
+        height = 800 #Nuke v6 or earlier UI height
 
         if int(nuke.env[ 'NukeVersionMajor' ]) >= 7: #GPU rendering UI
             height += 20
@@ -1128,6 +1128,7 @@ def SubmitJob( dialog, root, node, writeNodes, deadlineTemp, tempJobName, tempFr
     # the variables below need to be unset (they point to local system directories)
     fileHandle.write( EncodeAsUTF16String( "EnvironmentKeyValue0=NUKE_TEMP_DIR=\n") )
     fileHandle.write( EncodeAsUTF16String( "EnvironmentKeyValue1=NUKE_DISK_CACHE=\n") )
+    fileHandle.write( EncodeAsUTF16String( "EnvironmentKeyValue2=UMEDIA_ORIGINAL_SCENE_FILE_PATH={0}\n".format(nuke.root().name())))
     # UMEDIA - end
     fileHandle.write( EncodeAsUTF16String( "Group=%s\n" % dialog.group.value() ) )
     fileHandle.write( EncodeAsUTF16String( "Priority=%s\n" % dialog.priority.value() ) )
