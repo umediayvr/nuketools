@@ -42,8 +42,8 @@ class NukeHook(Hook):
         with those environments). This solution was based on:
         https://github.com/shotgunsoftware/tk-nuke-writenode/wiki/Documentation
         """
-        # we need at least these variables to try to load sgtk
-        if 'TANK_CURRENT_PC' not in os.environ or 'SHOTGUN_DESKTOP_CURRENT_USER' not in os.environ:
+        # we need that for the authentication
+        if 'TANK_NUKE_ENGINE_INIT_CONTEXT' not in os.environ:
             return
 
         # initialize tk-nuke engine:
@@ -60,25 +60,16 @@ class NukeHook(Hook):
         if not workAreaPath:
             return
 
-        # adding core to the python path
-        corePythonPath = os.path.join(
-            os.environ['TANK_CURRENT_PC'],
-            "install",
-            "core",
-            "python"
-        )
-
-        if corePythonPath not in sys.path:
-            sys.path.append(corePythonPath)
-
         # importing sgtk
         import sgtk
-        user = sgtk.authentication.deserialize_user(
-            os.environ["SHOTGUN_DESKTOP_CURRENT_USER"]
-        )
 
-        # setting user
-        sgtk.set_authenticated_user(user)
+        # the 'deserialize' process is going to set the user in sgtk implicitly,
+        # however we want to build a new context from scratch
+        if 'TANK_NUKE_ENGINE_INIT_CONTEXT' in os.environ:
+            # that is going to take care of the authentication proccess
+            ctx = sgtk.Context.deserialize(
+                os.environ['TANK_NUKE_ENGINE_INIT_CONTEXT']
+            )
 
         # instantiate an sgtk instance from the current work area path:
         tk = sgtk.sgtk_from_path(workAreaPath)
