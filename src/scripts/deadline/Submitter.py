@@ -3,14 +3,6 @@ import os
 import nuketools
 from . import DeadlineNukeClient
 
-# shotgun toolkit
-try:
-    import sgtk
-except ImportError:
-    shotgunAvailable = False
-else:
-    shotgunAvailable = True
-
 class SubmitterValidationError(Exception):
     """
     Submitter Validation Error.
@@ -26,41 +18,16 @@ class Submitter(object):
         """
         Submit render to the farm.
         """
-        # when shotgun is available
-        tkWriteNode = None
-        if shotgunAvailable:
-            eng = sgtk.platform.current_engine()
+        writeNodes = cls.writeNodes()
 
-            # we need to convert any shotgun write node
-            # to a regular write node, then when the render dialogue
-            # is closed we need to convert back to a shotgun write node
-            if "tk-nuke-writenode" in eng.apps:
-                tkWriteNode = eng.apps["tk-nuke-writenode"]
-                tkWriteNode.convert_to_write_nodes()
-
-        # does not matter what happens at this point we need to be able
-        # to recovery the shotgun write nodes (converted previously)
         try:
-            writeNodes = cls.writeNodes()
             cls.validateWriteNodes(writeNodes)
-
         except SubmitterValidationError as error:
             if not nuke.ask('{0}\nDo you want to continue?'.format(error.message)):
                 raise error
 
-            # calling deadline render dialogue in case the user wants to go ahead
-            # even aware about the issues.
-            cls.__deadlineRenderDialogue(writeNodes)
-
-        else:
-            # calling deadline render dialogue when everything is fine.
-            cls.__deadlineRenderDialogue(writeNodes)
-
-        finally:
-            # converting back write nodes to shotgun write nodes
-            # (only when shotgun is available)
-            if tkWriteNode:
-                tkWriteNode.convert_from_write_nodes()
+        # calling deadline render dialogue when everything is fine.
+        cls.__deadlineRenderDialogue(writeNodes)
 
     @classmethod
     def validateWriteNodes(cls, writeNodes, maxWriteNodes=1):
