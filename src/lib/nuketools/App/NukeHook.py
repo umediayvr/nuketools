@@ -65,11 +65,9 @@ class NukeHook(Hook):
 
         # the 'deserialize' process is going to set the user in sgtk implicitly,
         # however we want to build a new context from scratch
-        if 'TANK_NUKE_ENGINE_INIT_CONTEXT' in os.environ:
-            # that is going to take care of the authentication proccess
-            ctx = sgtk.Context.deserialize(
-                os.environ['TANK_NUKE_ENGINE_INIT_CONTEXT']
-            )
+        sgtk.Context.deserialize(
+            os.environ['TANK_NUKE_ENGINE_INIT_CONTEXT']
+        )
 
         # instantiate an sgtk instance from the current work area path:
         tk = sgtk.sgtk_from_path(workAreaPath)
