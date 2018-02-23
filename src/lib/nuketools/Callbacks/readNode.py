@@ -48,10 +48,14 @@ def onReadNodeUpdate(node=None, knob=None):
             node['uVariation'].setValue(os.path.basename(currentVariationDiretory))
 
     # updating current variation
-    elif knob.name() == "uVariation":
+    elif knob.name() == "uVariation" and knob.values():
         currentFile = os.path.basename(node['file'].value())
         variationsBaseDirectory = os.path.dirname(os.path.dirname(node['file'].value()))
-        node['file'].setValue(os.path.join(variationsBaseDirectory, knob.value(), currentFile))
+        variationDirectory = os.path.join(variationsBaseDirectory, knob.value())
+
+        # validating if the variation directory exists
+        if os.path.exists(variationDirectory):
+            node['file'].setValue(os.path.join(variationDirectory, currentFile))
 
 
 # registering callbacks
