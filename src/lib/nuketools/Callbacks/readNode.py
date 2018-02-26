@@ -8,9 +8,9 @@ def onCreateReadNode():
     """
     node = nuke.thisNode()
     umediaTab = nuke.Tab_Knob('umedia', 'UMedia')
-    variations = nuke.Enumeration_Knob('uVariations', 'Variations', [])
+    variation = nuke.Enumeration_Knob('uVariation', 'Variation', [])
     node.addKnob(umediaTab)
-    node.addKnob(variations)
+    node.addKnob(variation)
 
     # forcing to update the list of variations
     onReadNodeUpdate(node, node['file'])
@@ -26,7 +26,7 @@ def onReadNodeUpdate(node=None, knob=None):
         knob = nuke.thisKnob()
 
     # updating the list of variations
-    if knob.name() == "file" and 'uVariations' in node.knobs():
+    if knob.name() == "file" and 'uVariation' in node.knobs():
         variations = []
         currentFilePath = node['file'].getValue()
         currentVariationDiretory = os.path.dirname(currentFilePath)
@@ -43,15 +43,19 @@ def onReadNodeUpdate(node=None, knob=None):
                 if os.path.isdir(os.path.join(variationsDirectory, variationName)):
                     variations.append(variationName)
 
-        node['uVariations'].setValues(variations)
+        node['uVariation'].setValues(variations)
         if variations:
-            node['uVariations'].setValue(os.path.basename(currentVariationDiretory))
+            node['uVariation'].setValue(os.path.basename(currentVariationDiretory))
 
     # updating current variation
-    elif knob.name() == "uVariations":
+    elif knob.name() == "uVariation" and knob.values():
         currentFile = os.path.basename(node['file'].value())
         variationsBaseDirectory = os.path.dirname(os.path.dirname(node['file'].value()))
-        node['file'].setValue(os.path.join(variationsBaseDirectory, knob.value(), currentFile))
+        variationDirectory = os.path.join(variationsBaseDirectory, knob.value())
+
+        # validating if the variation directory exists
+        if os.path.exists(variationDirectory):
+            node['file'].setValue(os.path.join(variationDirectory, currentFile))
 
 
 # registering callbacks
