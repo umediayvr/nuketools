@@ -7,9 +7,18 @@ def onCreateReadNode():
     Triggered when a read node is created.
     """
     node = nuke.thisNode()
+
+    # in case the umedia knob is already there we don't do anything
+    # this happens when a read node is duplicated (ctrl+c & ctrl+v)
+    if 'umedia' in node.knobs():
+        return
+
+    # creating tab umedia knob
     umediaTab = nuke.Tab_Knob('umedia', 'UMedia')
-    variation = nuke.Enumeration_Knob('uVariation', 'Variation', [])
     node.addKnob(umediaTab)
+
+    # creating variation knob
+    variation = nuke.Enumeration_Knob('uVariation', 'Variation', [])
     node.addKnob(variation)
 
     # forcing to update the list of variations
