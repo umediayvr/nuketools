@@ -1,6 +1,7 @@
 import re
 import os
 import nuke
+from fnmatch import fnmatch
 
 def onCreateReadNode():
     """
@@ -20,9 +21,19 @@ def onCreateReadNode():
     # creating variation knob
     variation = nuke.Enumeration_Knob('uVariation', 'Variation', [])
     node.addKnob(variation)
+    node['label'].setValue('[value uVariation]')
 
     # forcing to update the list of variations
     onReadNodeUpdate(node, node['file'])
+
+    # setting default uVariation value
+    defaultVariationValue = nuke.knobDefault("Read.uVariation")
+    if defaultVariationValue:
+        for variationValue in variation.values():
+            # the knobDefault can be defined using the glob syntax
+            if fnmatch(variationValue, defaultVariationValue):
+                variation.setValue(variationValue)
+                break
 
 def onReadNodeUpdate(node=None, knob=None):
     """
@@ -52,6 +63,7 @@ def onReadNodeUpdate(node=None, knob=None):
                 if os.path.isdir(os.path.join(variationsDirectory, variationName)):
                     variations.append(variationName)
 
+        variations.sort()
         node['uVariation'].setValues(variations)
         if variations:
             node['uVariation'].setValue(os.path.basename(currentVariationDiretory))
@@ -68,5 +80,5 @@ def onReadNodeUpdate(node=None, knob=None):
 
 
 # registering callbacks
-nuke.addKnobChanged(onReadNodeUpdate, nodeClass="Read")
 nuke.addOnCreate(onCreateReadNode, nodeClass="Read")
+nuke.addKnobChanged(onReadNodeUpdate, nodeClass="Read")
