@@ -3,6 +3,7 @@ import os
 import nuke
 from fnmatch import fnmatch
 
+
 def onCreateReadNode():
     """
     Triggered when a read node is created.
@@ -27,13 +28,27 @@ def onCreateReadNode():
     onReadNodeUpdate(node, node['file'])
 
     # setting default uVariation value
+    setDefaultVariation(node)
+
+
+def setDefaultVariation(readNode):
+    """
+    Sets the default variation to the read node
+
+    :param readNode: Read node in nuke
+    :type readNode: nuke.Node
+    """
+    if readNode is None:
+        return
+    uVariationKnob = readNode['uVariation']
     defaultVariationValue = nuke.knobDefault("Read.uVariation")
     if defaultVariationValue:
-        for variationValue in variation.values():
+        for variationValue in uVariationKnob.values():
             # the knobDefault can be defined using the glob syntax
             if fnmatch(variationValue, defaultVariationValue):
-                variation.setValue(variationValue)
+                uVariationKnob.setValue(variationValue)
                 break
+
 
 def onReadNodeUpdate(node=None, knob=None):
     """
