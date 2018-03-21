@@ -6,13 +6,13 @@ from fnmatch import fnmatch
 
 # \TODO: Make the header of the metadata into Umedia e.g. Umedia/*
 __metadataConvention = 'exr/nuke/*Cdl'
-__modifyMetadataName = '__AddMetadataBR'
+__modifyMetadataName = '__addMetadataBR'
 
 
 def beforeRender():
     """Triggered before a render is launch."""
     writeNode = nuke.thisNode()
-    if not checkMetadata(writeNode):
+    if not hasMetadata(writeNode):
         addMetadata(writeNode)
 
 
@@ -61,7 +61,7 @@ def addMetadata(writeNode):
     writeNode.setInput(0, metadataNode)
 
 
-def checkMetadata(writeNode):
+def hasMetadata(writeNode):
     """
     Check if the metadata exist in the write node.
 
