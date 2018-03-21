@@ -9,24 +9,18 @@ __metadataConvention = 'exr/nuke/*Cdl'
 
 
 def beforeRender():
-    """
-    Triggered before a render is launch
-    """
+    """Triggered before a render is launch."""
     checkMetadata()
     deNeutralize()
 
 
 def afterRender():
-    """
-    Triggered after the render is done
-    """
+    """Triggered after the render is done."""
     deleteMetadataNode()
 
 
 def deleteMetadataNode():
-    """
-    Delete the node created to add the metadata if exists
-    """
+    """Delete the node created to add the metadata if exists."""
     metadataNode = nuke.toNode('AddMetadataBR')
     if not metadataNode:
         return
@@ -35,8 +29,9 @@ def deleteMetadataNode():
 
 def checkMetadata():
     """
-    Checks if the metadata exist in the write node, if not, it try to find it in any read node and putted back
-    before the write node
+    Check if the metadata exist in the write node.
+
+    Try to find the metadata in a read node and putted back before the write node.
     """
     writeNode = nuke.thisNode()
     xposWriteNode = writeNode.xpos()
@@ -69,7 +64,9 @@ def checkMetadata():
 
 def deNeutralize():
     """
-    checks for the "DeNeutralize" node first to make sure the callback is coming from a Media delivery template,
+    Set the "Deneutralize" node.
+
+    Checks for the "DeNeutralize" node first to make sure the callback is coming from a Media delivery template,
     then get the information of the metadata and add the values to the "DeNeutralize" node.
     """
     value = None
