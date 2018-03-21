@@ -1,17 +1,19 @@
+"""Render callbacks."""
 import nuke
-import json
 from ..App.NukeHook import NukeHook
 from fnmatch import fnmatch
 
 
 # \TODO: Make the header of the metadata into Umedia e.g. Umedia/*
 __metadataConvention = 'exr/nuke/*Cdl'
+__modifyMetadataName = '__AddMetadataBR'
 
 
 def beforeRender():
     """Triggered before a render is launch."""
-    checkMetadata()
-    deNeutralize()
+    writeNode = nuke.thisNode()
+    if not checkMetadata(writeNode):
+        addMetadata(writeNode)
 
 
 def afterRender():
@@ -21,32 +23,29 @@ def afterRender():
 
 def deleteMetadataNode():
     """Delete the node created to add the metadata if exists."""
-    metadataNode = nuke.toNode('AddMetadataBR')
+    metadataNode = nuke.toNode(__modifyMetadataName)
     if not metadataNode:
         return
     nuke.delete(metadataNode)
 
 
-def checkMetadata():
+def addMetadata(writeNode):
     """
-    Check if the metadata exist in the write node.
+    Add the metadata before it render.
 
-    Try to find the metadata in a read node and putted back before the write node.
+    Create a node to add the metadata found in a write node.
+    :parm writeNode: The curernt write node
+    :type writeNode: nuke.Node
     """
-    writeNode = nuke.thisNode()
     xposWriteNode = writeNode.xpos()
     yposWriteNode = writeNode.ypos()
-
-    for metadataKey in writeNode.metadata().keys():
-        if fnmatch(metadataKey, __metadataConvention):
-            return
-
     value = None
     name = None
     for readNode in NukeHook.queryAllNodes('Read'):
-        for metadataKey in readNode.metadata().keys():
+        metadata = readNode.metadata()
+        for metadataKey in metadata.keys():
             if fnmatch(metadataKey, __metadataConvention):
-                value = readNode.metadata()[metadataKey]
+                value = metadata[metadataKey]
                 name = metadataKey.split('/')[-1]
                 break
 
@@ -54,7 +53,7 @@ def checkMetadata():
         return
 
     metadataNode = nuke.createNode('ModifyMetaData')
-    metadataNode.setName('AddMetadataBR')
+    metadataNode.setName(__modifyMetadataName)
     metadataNode.setXYpos(xposWriteNode, yposWriteNode - 40)
     metadataNode.knob('metadata').fromScript('{' + "set {name}".format(name=name) + " \"{}\"".format(value.replace('"', '\\"')) + '}')
     connectedNode = writeNode.input(0)
@@ -62,34 +61,22 @@ def checkMetadata():
     writeNode.setInput(0, metadataNode)
 
 
-def deNeutralize():
+def checkMetadata(writeNode):
     """
-    Set the "Deneutralize" node.
+    Check if the metadata exist in the write node.
 
-    Checks for the "DeNeutralize" node first to make sure the callback is coming from a Media delivery template,
-    then get the information of the metadata and add the values to the "DeNeutralize" node.
+    :parm writeNode: The curernt write node
+    :type writeNode: nuke.Node
+    :return foundMetadata: A flag that return if it found the metadata or not
+    :rtype: boolean
     """
-    value = None
-    cdlNeutralNode = nuke.toNode('DeNeutralize')
-    # Checks if the node exists
-    if not cdlNeutralNode:
-        return
+    foundMetadata = False
 
-    for readNode in NukeHook.queryAllNodes('Read'):
-        for metadataKey in readNode.metadata().keys():
-            if fnmatch(metadataKey, __metadataConvention):
-                value = readNode.metadata()[metadataKey]
-                break
+    for metadataKey in writeNode.metadata().keys():
+        if fnmatch(metadataKey, __metadataConvention):
+            foundMetadata = True
 
-    if not value:
-        return
-
-    # The value of the cdl neutral are serialized in a json format
-    cdlValues = json.loads(value)
-    cdlNeutralNode['slope'].setValue(cdlValues['slope'])
-    cdlNeutralNode['offset'].setValue(cdlValues['offset'])
-    cdlNeutralNode['power'].setValue(cdlValues['power'])
-    cdlNeutralNode['saturation'].setValue(cdlValues['saturation'])
+    return foundMetadata
 
 
 # registering callbacks
