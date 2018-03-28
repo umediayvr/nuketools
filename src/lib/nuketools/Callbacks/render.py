@@ -43,6 +43,8 @@ def addMetadata(writeNode):
     name = None
     for readNode in NukeHook.queryAllNodes('Read'):
         metadata = readNode.metadata()
+        if not metadata:
+            continue
         for metadataKey in metadata.keys():
             if fnmatch(metadataKey, __metadataConvention):
                 value = metadata[metadataKey]
