@@ -27,9 +27,9 @@ def deleteMetadataNode():
 
     if not metaNode.name() == __modifyMetadataName:
         return
-    cropNode = metaNode.input(0)
+    inputNode = metaNode.input(0)
     nuke.delete(metaNode)
-    writeNode.setInput(0, cropNode)
+    writeNode.setInput(0, inputNode)
 
 
 def addMetadata(writeNode):
