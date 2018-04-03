@@ -1,6 +1,7 @@
 """Render callbacks."""
 import nuke
 from fnmatch import fnmatch
+from ..App.NukeHook import NukeHook
 
 
 # \TODO: Make the header of the metadata into Umedia e.g. Umedia/*
@@ -10,7 +11,7 @@ __modifyMetadataName = '__addMetadataBR'
 
 def beforeRender():
     """Triggered before a render is launch."""
-    writeNode = nuke.thisParent()
+    writeNode = nuke.thisNode()
     if not hasMetadata(writeNode):
         addMetadata(writeNode)
 
@@ -22,7 +23,7 @@ def afterRender():
 
 def deleteMetadataNode():
     """Delete the node created to add the metadata if exists."""
-    writeNode = nuke.thisParent()
+    writeNode = nuke.thisNode()
     metaNode = writeNode.input(0)
 
     if not metaNode.name() == __modifyMetadataName:
@@ -44,7 +45,7 @@ def addMetadata(writeNode):
     yposWriteNode = writeNode.ypos()
     values = {}
     nodesFound = []
-    traverseCompTree(writeNode, 'read', nodesFound)
+    NukeHook.traverseCompTree(writeNode, 'read', nodesFound)
 
     # check if the node have the information need it
     for node in nodesFound:
@@ -75,35 +76,6 @@ def addMetadata(writeNode):
     connectedNode = writeNode.input(0)
     metadataNode.setInput(0, connectedNode)
     writeNode.setInput(0, metadataNode)
-
-
-def traverseCompTree(node, nodeType, nodesFound, nodeCache=[]):
-    """
-    Traverse the nuke node tree bottom to top from the a specific node.
-
-    :param node: The node to start the recursion from.
-    :type node: nuke.Node
-    :param nodeType: The type of the node to be found in the node tree.
-    :type nodeType: str
-    :param nodesFound: The list to fill with the nodes found.
-    :type nodesFound: list
-    :param nodeCache: A list of nodes that has been revised.
-    :type nodeCache: list
-    """
-    # Create a cache for nodes that have been process
-    if node in nodeCache:
-        return
-
-    nodeCache.append(node)
-
-    for i in range(node.inputs()):
-        inputNode = node.input(i)
-        if inputNode is None:
-            continue
-        if inputNode.Class() == nodeType.capitalize():
-            nodesFound.append(inputNode)
-        print 'NodesFound --->>>>>>> ', nodesFound
-        traverseCompTree(inputNode, nodeType, nodesFound, nodeCache)
 
 
 def hasMetadata(writeNode):

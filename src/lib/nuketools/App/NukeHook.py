@@ -19,6 +19,37 @@ class NukeHook(Hook):
             self.__loadMissingSgtk()
 
     @classmethod
+    def traverseCompTree(cls, node, nodeType, nodesFound, nodeCache=[]):
+        """
+        Traverse the nuke node tree bottom to top from the a specific node.
+
+        :param node: The node to start the recursion from.
+        :type node: nuke.Node
+        :param nodeType: The type of the node to be found in the node tree.
+        :type nodeType: str
+        :param nodesFound: The list to fill with the nodes found.
+        :type nodesFound: list
+        :param nodeCache: A list of nodes that has been revised.
+        :type nodeCache: list
+        """
+        # Create a cache for nodes that have been process
+        if node in nodeCache:
+            return
+
+        nodeCache.append(node)
+
+        for i in range(node.inputs()):
+            inputNode = node.input(i)
+            if inputNode is None:
+                continue
+            if inputNode.Class() == nodeType.capitalize():
+                nodesFound.append(inputNode)
+            cls.traverseCompTree(inputNode, nodeType, nodesFound, nodeCache)
+
+        if nuke.thisParent():
+            cls.traverseCompTree(nuke.thisParent(), nodeType, nodesFound, nodeCache)
+
+    @classmethod
     def queryAllNodes(cls, nodeType, parent=nuke.Root()):
         """
         Return all nodes from a specific type recursively.
