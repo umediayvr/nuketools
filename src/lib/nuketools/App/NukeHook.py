@@ -28,7 +28,7 @@ class NukeHook(Hook):
         :type node: nuke.Node
         :param nodeType: The type of the node to be found in the node tree.
         :type nodeType: str
-        :param direction: The direction to traverse the network.
+        :param direction: The direction to traverse the network. values: input or output
         :type direction: str
         """
         assert isinstance(direction, str) and (direction == 'output' or direction == 'input')
@@ -56,7 +56,7 @@ class NukeHook(Hook):
         :type node: nuke.Node
         :param nodeType: The type of the node to be found in the node tree.
         :type nodeType: str
-        :param direction: The direction to traverse the network, values: input or output.
+        :param direction: The direction to traverse the network. values: input or output.
         :type direction: str
         :param nodeCache: A list of nodes that has been revised.
         :type nodeCache: list
