@@ -60,10 +60,6 @@ class NukeHook(Hook):
         nodes = node.dependencies() if direction == 'input' else node.dependent()
 
         for nod in nodes:
-
-            if nod is None:
-                continue
-
             if direction != 'input':
                 for n in nod.dependencies():
                     if n in nodeCache:
