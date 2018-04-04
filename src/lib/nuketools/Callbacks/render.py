@@ -44,8 +44,7 @@ def addMetadata(writeNode):
     xposWriteNode = writeNode.xpos()
     yposWriteNode = writeNode.ypos()
     values = {}
-    nodesFound = []
-    NukeHook.traverseCompTree(writeNode, 'read', nodesFound)
+    nodesFound = NukeHook.traverseNetwork(writeNode, 'read')
 
     # check if the node have the information need it
     for node in nodesFound:

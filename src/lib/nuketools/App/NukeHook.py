@@ -19,9 +19,22 @@ class NukeHook(Hook):
             self.__loadMissingSgtk()
 
     @classmethod
-    def traverseCompTree(cls, node, nodeType, nodesFound, nodeCache=[]):
+    def traverseNetwork(cls, node, nodeType):
         """
-        Traverse the nuke node tree bottom to top from the a specific node.
+        Traverse the nuke node network bottom to top from the a specific node.
+
+        :param node: The node to start the recursion from.
+        :type node: nuke.Node
+        :param nodeType: The type of the node to be found in the node tree.
+        :type nodeType: str
+        """
+        nodeCache = []
+        return cls.__traverseNetwork(node, nodeType, nodeCache)
+
+    @classmethod
+    def __traverseNetwork(cls, node, nodeType, nodeCache=[]):
+        """
+        Traverse the nuke node network bottom to top from the a specific node.
 
         :param node: The node to start the recursion from.
         :type node: nuke.Node
@@ -38,16 +51,26 @@ class NukeHook(Hook):
 
         nodeCache.append(node)
 
+        nodesFound = []
         for i in range(node.inputs()):
             inputNode = node.input(i)
+
             if inputNode is None:
                 continue
+
             if inputNode.Class() == nodeType.capitalize():
                 nodesFound.append(inputNode)
-            cls.traverseCompTree(inputNode, nodeType, nodesFound, nodeCache)
+
+            result = cls.__traverseNetwork(inputNode, nodeType, nodeCache)
+            if result:
+                nodesFound += result
 
         if nuke.thisParent():
-            cls.traverseCompTree(nuke.thisParent(), nodeType, nodesFound, nodeCache)
+            result = cls.__traverseNetwork(nuke.thisParent(), nodeType, nodeCache)
+            if result:
+                nodesFound += result
+
+        return nodesFound
 
     @classmethod
     def queryAllNodes(cls, nodeType, parent=nuke.Root()):
