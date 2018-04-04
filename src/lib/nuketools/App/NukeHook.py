@@ -4,6 +4,7 @@ import nuke
 from .NukeContext import NukeContext
 from basetools.App import Hook
 
+
 class NukeHook(Hook):
     """
     Hook implementation for nuke.
@@ -19,6 +20,22 @@ class NukeHook(Hook):
             self.__loadMissingSgtk()
 
     @classmethod
+    def traverseNetwork(cls, node, nodeType, direction='input'):
+        """
+        Traverse the nuke node network base on the direction given from the a specific node.
+
+        :param node: The node to start the recursion from.
+        :type node: nuke.Node
+        :param nodeType: The type of the node to be found in the node tree.
+        :type nodeType: str
+        :param direction: The direction to traverse the network. values: input or output
+        :type direction: str
+        """
+        assert isinstance(direction, str) and (direction == 'output' or direction == 'input')
+        nodeCache = []
+        return cls.__traverseNetwork(node, nodeType, direction, nodeCache)
+
+    @classmethod
     def queryAllNodes(cls, nodeType, parent=nuke.Root()):
         """
         Return all nodes from a specific type recursively.
@@ -29,6 +46,46 @@ class NukeHook(Hook):
             result += cls.queryAllNodes(nodeType, group)
 
         return result
+
+    @classmethod
+    def __traverseNetwork(cls, node, nodeType, direction, nodeCache):
+        """
+        Auxiliar to the traverseNetwork method.
+
+        :param node: The node to start the recursion from.
+        :type node: nuke.Node
+        :param nodeType: The type of the node to be found in the node tree.
+        :type nodeType: str
+        :param direction: The direction to traverse the network. values: input or output.
+        :type direction: str
+        :param nodeCache: A list of nodes that has been revised.
+        :type nodeCache: list
+        """
+        # Create a cache for nodes that have been process
+        if not node or node in nodeCache:
+            return []
+
+        nodeCache.append(node)
+
+        nodesFound = []
+        if node.Class() == nodeType.capitalize():
+            nodesFound.append(node)
+
+        nodes = node.dependencies() if direction == 'input' else node.dependent()
+
+        for nod in nodes:
+            if direction == 'output':
+                for n in nod.dependencies():
+                    if n in nodeCache:
+                        continue
+                    nodesFound += cls.__traverseNetwork(n, nodeType, 'input', nodeCache)
+
+            nodesFound += cls.__traverseNetwork(nod, nodeType, direction, nodeCache)
+
+        if nuke.thisParent():
+            nodesFound += cls.__traverseNetwork(nuke.thisParent(), nodeType, direction, nodeCache)
+
+        return nodesFound
 
     @classmethod
     def __loadMissingSgtk(cls):

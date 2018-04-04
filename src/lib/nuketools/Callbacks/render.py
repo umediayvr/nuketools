@@ -1,7 +1,7 @@
 """Render callbacks."""
 import nuke
-from ..App.NukeHook import NukeHook
 from fnmatch import fnmatch
+from ..App.NukeHook import NukeHook
 
 
 # \TODO: Make the header of the metadata into Umedia e.g. Umedia/*
@@ -23,10 +23,14 @@ def afterRender():
 
 def deleteMetadataNode():
     """Delete the node created to add the metadata if exists."""
-    metadataNode = nuke.toNode(__modifyMetadataName)
-    if not metadataNode:
+    writeNode = nuke.thisNode()
+    metaNode = writeNode.input(0)
+
+    if not metaNode.name() == __modifyMetadataName:
         return
-    nuke.delete(metadataNode)
+    inputNode = metaNode.input(0)
+    nuke.delete(metaNode)
+    writeNode.setInput(0, inputNode)
 
 
 def addMetadata(writeNode):
@@ -39,25 +43,35 @@ def addMetadata(writeNode):
     """
     xposWriteNode = writeNode.xpos()
     yposWriteNode = writeNode.ypos()
-    value = None
-    name = None
-    for readNode in NukeHook.queryAllNodes('Read'):
-        metadata = readNode.metadata()
+    values = {}
+    nodesFound = NukeHook.traverseNetwork(writeNode, 'read')
+
+    # check if the node have the information need it
+    for node in nodesFound:
+        metadata = node.metadata()
         if not metadata:
             continue
         for metadataKey in metadata.keys():
             if fnmatch(metadataKey, __metadataConvention):
-                value = metadata[metadataKey]
-                name = metadataKey.split('/')[-1]
-                break
+                metavalue = metadata[metadataKey]
+                metaname = metadataKey.split('/')[-1]
+                if metaname not in values.keys():
+                    values[metaname] = (metavalue, node.name())
 
-    if value is None or name is None:
+                elif values[metaname][0] != metavalue:
+                    raise ValueError(
+                        'Can not determine a Neutral Cdl.\n{rNodeOne} and {rNodeTwo} have different Neutral Cdl values'.format(
+                            rNodeOne=values[metaname][1],
+                            rNodeTwo=node.name()
+                        )
+                    )
+    if not values:
         return
-
     metadataNode = nuke.createNode('ModifyMetaData')
     metadataNode.setName(__modifyMetadataName)
     metadataNode.setXYpos(xposWriteNode, yposWriteNode - 40)
-    metadataNode.knob('metadata').fromScript('{' + "set {name}".format(name=name) + " \"{}\"".format(value.replace('"', '\\"')) + '}')
+    for name, value in values.iteritems():
+        metadataNode.knob('metadata').fromScript('{' + "set {name}".format(name=name) + " \"{}\"".format(value[0].replace('"', '\\"')) + '}')
     connectedNode = writeNode.input(0)
     metadataNode.setInput(0, connectedNode)
     writeNode.setInput(0, metadataNode)
