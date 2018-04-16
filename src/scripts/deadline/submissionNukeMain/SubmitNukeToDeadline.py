@@ -1220,7 +1220,8 @@ def SubmitJob( dialog, root, node, writeNodes, deadlineTemp, tempJobName, tempFr
 
                     if enterLoop:
                         #gets the filename/proxy filename and evaluates TCL + vars, but *doesn't* swap frame padding
-                        fileValue = nuke.filename( tempNode )
+                        # fileValue = nuke.filename( tempNode )
+                        fileValue = tempNode['file'].value()
                         if ( root.proxy() and tempNode.knob( 'proxy' ).value() != "" ):
                             evaluatedValue = tempNode.knob( 'proxy' ).evaluate(view=v)
                         else:
