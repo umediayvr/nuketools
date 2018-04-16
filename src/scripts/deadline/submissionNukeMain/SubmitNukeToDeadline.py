@@ -1220,7 +1220,7 @@ def SubmitJob( dialog, root, node, writeNodes, deadlineTemp, tempJobName, tempFr
 
                     if enterLoop:
                         #gets the filename/proxy filename and evaluates TCL + vars, but *doesn't* swap frame padding
-                        # fileValue = nuke.filename( tempNode )
+                        #Fixed bug - when use nuke.filename( tempNode ) in nuke 11.1v1 it freeze with SG write nodes
                         fileValue = tempNode['file'].value()
                         if ( root.proxy() and tempNode.knob( 'proxy' ).value() != "" ):
                             evaluatedValue = tempNode.knob( 'proxy' ).evaluate(view=v)
