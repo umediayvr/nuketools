@@ -39,6 +39,6 @@ class NukeContext(Context):
     @classmethod
     def hasGUI(cls):
         """
-        Return a boolean telling if application is running with through GUI.
+        Return a boolean telling if application is running with GUI.
         """
         return nuke.GUI
